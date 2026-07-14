@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { strings } from '@/constants/strings';
-import { Spacing } from '@/constants/theme';
+import { radius, space } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { supabase } from '@/lib/supabase';
 
@@ -52,27 +52,24 @@ export default function SignInScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.content}>
-          <Text style={[styles.title, { color: theme.text }]}>{t.title}</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>{t.subtitle}</Text>
+          <Text style={[styles.title, { color: theme.ink }]}>{t.title}</Text>
+          <Text style={[styles.subtitle, { color: theme.inkSecondary }]}>{t.subtitle}</Text>
 
-          <Text style={[styles.label, { color: theme.textSecondary }]}>{t.emailLabel}</Text>
+          <Text style={[styles.label, { color: theme.inkSecondary }]}>{t.emailLabel}</Text>
           <TextInput
-            style={[
-              styles.input,
-              { color: theme.text, backgroundColor: theme.backgroundElement },
-            ]}
+            style={[styles.input, { color: theme.ink, backgroundColor: theme.surfaceMuted }]}
             value={email}
             onChangeText={(text) => {
               setEmail(text);
               if (error) setError(null);
             }}
             placeholder={t.emailPlaceholder}
-            placeholderTextColor={theme.textSecondary}
+            placeholderTextColor={theme.inkMuted}
             keyboardType="email-address"
             autoCapitalize="none"
             autoComplete="email"
@@ -83,16 +80,22 @@ export default function SignInScreen() {
             returnKeyType="send"
           />
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+          {error ? (
+            <Text style={[styles.error, { color: theme.heat.main }]}>{error}</Text>
+          ) : null}
 
           <Pressable
-            style={[styles.button, { backgroundColor: theme.text }, submitting && styles.disabled]}
+            style={[
+              styles.button,
+              { backgroundColor: theme.heat.main },
+              submitting && styles.disabled,
+            ]}
             onPress={onSubmit}
             disabled={submitting}>
             {submitting ? (
-              <ActivityIndicator color={theme.background} />
+              <ActivityIndicator color={theme.heat.on} />
             ) : (
-              <Text style={[styles.buttonText, { color: theme.background }]}>{t.submit}</Text>
+              <Text style={[styles.buttonText, { color: theme.heat.on }]}>{t.submit}</Text>
             )}
           </Pressable>
         </View>
@@ -107,25 +110,25 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.two,
+    paddingHorizontal: space.xl,
+    gap: space.sm,
   },
-  title: { fontSize: 26, fontWeight: '700' },
-  subtitle: { fontSize: 15, marginBottom: Spacing.three },
-  label: { fontSize: 13, marginTop: Spacing.two },
+  title: { fontSize: 26, fontWeight: '700', letterSpacing: -0.5 },
+  subtitle: { fontSize: 15, marginBottom: space.lg },
+  label: { fontSize: 13, marginTop: space.sm, fontWeight: '500' },
   input: {
-    borderRadius: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.three,
+    borderRadius: radius.input,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.lg,
     fontSize: 16,
   },
-  error: { color: '#E5484D', fontSize: 13 },
+  error: { fontSize: 13, fontWeight: '600' },
   button: {
-    marginTop: Spacing.three,
-    borderRadius: Spacing.two,
-    paddingVertical: Spacing.three,
+    marginTop: space.lg,
+    borderRadius: radius.button,
+    paddingVertical: space.lg,
     alignItems: 'center',
   },
-  buttonText: { fontSize: 16, fontWeight: '600' },
+  buttonText: { fontSize: 16, fontWeight: '700' },
   disabled: { opacity: 0.6 },
 });

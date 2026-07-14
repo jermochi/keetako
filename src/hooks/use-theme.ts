@@ -3,12 +3,13 @@
  * https://docs.expo.dev/guides/color-schemes/
  */
 
-import { Colors } from '@/constants/theme';
+import { colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export function useTheme() {
   const scheme = useColorScheme();
-  const theme = scheme === 'unspecified' ? 'light' : scheme;
+  // Dark is the flagship theme — it's also the fallback when the scheme is unknown.
+  const theme = scheme === 'unspecified' ? 'dark' : scheme;
 
-  return Colors[theme];
+  return colors[theme];
 }

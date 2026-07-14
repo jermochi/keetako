@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { strings } from '@/constants/strings';
-import { Spacing } from '@/constants/theme';
+import { radius, space } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { supabase } from '@/lib/supabase';
 
@@ -58,26 +58,26 @@ export default function VerifyScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.content}>
-          <Text style={[styles.title, { color: theme.text }]}>{t.title}</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+          <Text style={[styles.title, { color: theme.ink }]}>{t.title}</Text>
+          <Text style={[styles.subtitle, { color: theme.inkSecondary }]}>
             {t.subtitle} {email}
           </Text>
 
-          <Text style={[styles.label, { color: theme.textSecondary }]}>{t.codeLabel}</Text>
+          <Text style={[styles.label, { color: theme.inkSecondary }]}>{t.codeLabel}</Text>
           <TextInput
-            style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+            style={[styles.input, { color: theme.ink, backgroundColor: theme.surfaceMuted }]}
             value={code}
             onChangeText={(text) => {
               setCode(text.replace(/\D/g, '').slice(0, 6));
               if (error) setError(null);
             }}
             placeholder={t.codePlaceholder}
-            placeholderTextColor={theme.textSecondary}
+            placeholderTextColor={theme.inkMuted}
             keyboardType="number-pad"
             inputMode="numeric"
             autoComplete="one-time-code"
@@ -88,21 +88,27 @@ export default function VerifyScreen() {
             returnKeyType="done"
           />
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+          {error ? (
+            <Text style={[styles.error, { color: theme.heat.main }]}>{error}</Text>
+          ) : null}
 
           <Pressable
-            style={[styles.button, { backgroundColor: theme.text }, submitting && styles.disabled]}
+            style={[
+              styles.button,
+              { backgroundColor: theme.heat.main },
+              submitting && styles.disabled,
+            ]}
             onPress={onVerify}
             disabled={submitting}>
             {submitting ? (
-              <ActivityIndicator color={theme.background} />
+              <ActivityIndicator color={theme.heat.on} />
             ) : (
-              <Text style={[styles.buttonText, { color: theme.background }]}>{t.submit}</Text>
+              <Text style={[styles.buttonText, { color: theme.heat.on }]}>{t.submit}</Text>
             )}
           </Pressable>
 
           <Pressable onPress={onResend} disabled={resending} style={styles.resend}>
-            <Text style={[styles.resendText, { color: theme.textSecondary }]}>{t.resend}</Text>
+            <Text style={[styles.resendText, { color: theme.inkSecondary }]}>{t.resend}</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -116,28 +122,27 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.two,
+    paddingHorizontal: space.xl,
+    gap: space.sm,
   },
-  title: { fontSize: 26, fontWeight: '700' },
-  subtitle: { fontSize: 15, marginBottom: Spacing.three },
-  label: { fontSize: 13, marginTop: Spacing.two },
+  title: { fontSize: 26, fontWeight: '700', letterSpacing: -0.5 },
+  subtitle: { fontSize: 15, marginBottom: space.lg },
+  label: { fontSize: 13, marginTop: space.sm, fontWeight: '500' },
   input: {
-    borderRadius: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.three,
+    borderRadius: radius.input,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.lg,
     fontSize: 20,
     letterSpacing: 4,
+    fontVariant: ['tabular-nums'],
   },
-  error: { color: '#E5484D', fontSize: 13 },
+  error: { fontSize: 13, fontWeight: '600' },
   button: {
-    marginTop: Spacing.three,
-    borderRadius: Spacing.two,
-    paddingVertical: Spacing.three,
+    marginTop: space.lg,
+    borderRadius: radius.button,
+    paddingVertical: space.lg,
     alignItems: 'center',
   },
-  buttonText: { fontSize: 16, fontWeight: '600' },
+  buttonText: { fontSize: 16, fontWeight: '700' },
   disabled: { opacity: 0.6 },
-  resend: { marginTop: Spacing.three, alignItems: 'center' },
-  resendText: { fontSize: 14 },
 });
