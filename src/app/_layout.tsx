@@ -1,10 +1,12 @@
 import type { Session } from '@supabase/supabase-js';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { asyncStoragePersister, queryClient } from '@/lib/query-client';
 import { supabase } from '@/lib/supabase';
 
 export default function RootLayout() {
@@ -28,16 +30,24 @@ export default function RootLayout() {
   useProtectedRoute(session, loading);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      {loading ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator />
-        </View>
-      ) : (
-        <Stack screenOptions={{ headerShown: false }} />
-      )}
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister: asyncStoragePersister }}
+      onSuccess={() => {
+        // Restored cache is in memory — retry any writes that were queued offline.
+        queryClient.resumePausedMutations();
+      }}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        {loading ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator />
+          </View>
+        ) : (
+          <Stack screenOptions={{ headerShown: false }} />
+        )}
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </PersistQueryClientProvider>
   );
 }
 
