@@ -1,9 +1,10 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { strings } from '@/constants/strings';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { supabase } from '@/lib/supabase';
 
 export default function HomeScreen() {
   const theme = useTheme();
@@ -16,6 +17,13 @@ export default function HomeScreen() {
         <Text style={[styles.placeholder, { color: theme.textSecondary }]}>
           {strings.home.placeholder}
         </Text>
+
+        {/* Temporary — replaced by the Settings tab in M10. */}
+        <Pressable
+          style={[styles.signOut, { borderColor: theme.backgroundSelected }]}
+          onPress={() => supabase.auth.signOut()}>
+          <Text style={[styles.signOutText, { color: theme.text }]}>{strings.home.signOut}</Text>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
@@ -42,5 +50,16 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     fontSize: 13,
+  },
+  signOut: {
+    marginTop: Spacing.four,
+    borderWidth: 1,
+    borderRadius: Spacing.two,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.four,
+  },
+  signOutText: {
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
