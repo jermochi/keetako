@@ -20,7 +20,8 @@ export const strings = {
       submit: 'Send code',
       sending: 'Sending…',
       invalidEmail: 'Enter a valid email address.',
-      genericError: 'Couldn’t send the code. Check your connection and try again.',
+      networkError: 'Couldn’t reach the server. Check your connection and try again.',
+      sendError: 'Couldn’t send the code right now. Please try again in a moment.',
     },
     verify: {
       title: 'Enter your code',
