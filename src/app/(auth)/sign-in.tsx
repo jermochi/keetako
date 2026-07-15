@@ -1,3 +1,4 @@
+import { isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -44,7 +45,10 @@ export default function SignInScreen() {
     setSubmitting(false);
 
     if (otpError) {
-      setError(t.genericError);
+      // A network failure is actionable by the user (check connection); anything
+      // else (e.g. a 500 from the email provider) is server-side — don't send
+      // them chasing their wifi.
+      setError(isAuthRetryableFetchError(otpError) ? t.networkError : t.sendError);
       return;
     }
 
