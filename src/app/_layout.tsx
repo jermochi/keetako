@@ -1,6 +1,7 @@
 import type { Session } from '@supabase/supabase-js';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -8,6 +9,10 @@ import { ActivityIndicator, View } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { asyncStoragePersister, queryClient } from '@/lib/query-client';
 import { supabase } from '@/lib/supabase';
+
+// Keep the native splash up until the initial session check resolves; the root
+// gates the navigator behind `loading`, so expo-router's auto-hide never fires.
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -28,6 +33,10 @@ export default function RootLayout() {
   }, []);
 
   useProtectedRoute(session, loading);
+
+  useEffect(() => {
+    if (!loading) SplashScreen.hideAsync();
+  }, [loading]);
 
   return (
     <PersistQueryClientProvider
