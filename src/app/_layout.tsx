@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
+import { colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { asyncStoragePersister, queryClient } from '@/lib/query-client';
 import { supabase } from '@/lib/supabase';
@@ -13,6 +14,35 @@ import { supabase } from '@/lib/supabase';
 // Keep the native splash up until the initial session check resolves; the root
 // gates the navigator behind `loading`, so expo-router's auto-hide never fires.
 SplashScreen.preventAutoHideAsync();
+
+// Navigation containers pick these up for transition backgrounds, ripples,
+// and any native chrome — otherwise stock react-navigation blue/white bleeds
+// through between our token-styled screens.
+const ledgerDark = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    primary: colors.dark.heat.main,
+    background: colors.dark.bg,
+    card: colors.dark.surface,
+    text: colors.dark.ink,
+    border: colors.dark.hair,
+    notification: colors.dark.heat.main,
+  },
+};
+
+const ledgerLight = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: colors.light.heat.main,
+    background: colors.light.bg,
+    card: colors.light.surface,
+    text: colors.light.ink,
+    border: colors.light.hair,
+    notification: colors.light.heat.main,
+  },
+};
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -46,7 +76,7 @@ export default function RootLayout() {
         // Restored cache is in memory — retry any writes that were queued offline.
         queryClient.resumePausedMutations();
       }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={colorScheme === 'dark' ? ledgerDark : ledgerLight}>
         {loading ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <ActivityIndicator />
