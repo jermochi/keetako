@@ -11,6 +11,11 @@
 //   SEED_USER_EMAIL=you@example.com      # sign in on the app once first
 //
 // Re-running wipes this user's creators (cascades to threads) and reseeds.
+//
+// The seed user must NOT be on the free entitlement: 26 of these 30 threads are
+// "active", and enforce_free_cap() rejects the 11th with FREE_CAP_REACHED. The
+// service-role key bypasses RLS but NOT triggers. Upgrade the row first:
+//   update profiles set entitlement = 'pro' where id = '<user id>';
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -40,15 +45,17 @@ const iso = (offsetDays) => {
   return d.toISOString();
 };
 
+// Handles are stored normalized (no leading @, lowercase) — the UI renders the @.
+// Seeding them with an @ would render as "@@mika.beauty".
 const CREATORS = [
-  { handle: '@mika.beauty', platform: 'tiktok_shop', niche: 'Skincare', followers: 48200, contact: 'mika@dm' },
-  { handle: '@jcollabs', platform: 'tiktok_shop', niche: 'Makeup', followers: 15600, contact: 'jo@dm' },
-  { handle: '@cebufoodie', platform: 'tiktok_shop', niche: 'Food', followers: 92300, contact: null },
-  { handle: '@glowbyria', platform: 'shopee', niche: 'Skincare', followers: 7300, contact: 'ria@dm' },
-  { handle: '@techtitoph', platform: 'tiktok_shop', niche: 'Gadgets', followers: 210000, contact: null },
-  { handle: '@momlife.mnl', platform: 'tiktok_shop', niche: 'Home', followers: 33400, contact: 'mom@dm' },
-  { handle: '@fitjourneyjb', platform: 'shopee', niche: 'Fitness', followers: 5100, contact: null },
-  { handle: '@lash.lounge', platform: 'tiktok_shop', niche: 'Beauty', followers: 18900, contact: 'lash@dm' },
+  { handle: 'mika.beauty', platform: 'tiktok_shop', niche: 'Skincare', followers: 48200, contact: 'mika@dm' },
+  { handle: 'jcollabs', platform: 'tiktok_shop', niche: 'Makeup', followers: 15600, contact: 'jo@dm' },
+  { handle: 'cebufoodie', platform: 'tiktok_shop', niche: 'Food', followers: 92300, contact: null },
+  { handle: 'glowbyria', platform: 'shopee', niche: 'Skincare', followers: 7300, contact: 'ria@dm' },
+  { handle: 'techtitoph', platform: 'tiktok_shop', niche: 'Gadgets', followers: 210000, contact: null },
+  { handle: 'momlife.mnl', platform: 'tiktok_shop', niche: 'Home', followers: 33400, contact: 'mom@dm' },
+  { handle: 'fitjourneyjb', platform: 'shopee', niche: 'Fitness', followers: 5100, contact: null },
+  { handle: 'lash.lounge', platform: 'tiktok_shop', niche: 'Beauty', followers: 18900, contact: 'lash@dm' },
 ];
 
 const PRODUCTS = [

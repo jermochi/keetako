@@ -144,5 +144,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: { fontSize: 16, fontWeight: '700' },
+  resend: { marginTop: space.lg, alignItems: 'center', paddingVertical: space.sm },
+  resendText: { fontSize: 14, fontWeight: '600' },
   disabled: { opacity: 0.6 },
 });

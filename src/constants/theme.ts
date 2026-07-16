@@ -26,8 +26,10 @@ const dark = {
   inkMuted: '#706F76',
   // the ONE accent — act here: alerts, at-risk money, primary CTA, destructive
   heat: { main: '#FF3D8C', bright: '#FF66A3', soft: '#351320', on: '#0A0A0B' },
-} as const;
+};
 
+// Widened on purpose: `dark` defines the *shape*, `light` is a full peer that
+// must be assignable to it — `as const` here would pin the type to dark's hexes.
 export type ThemeColors = typeof dark;
 
 const light: ThemeColors = {
