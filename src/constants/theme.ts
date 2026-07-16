@@ -13,7 +13,11 @@
 
 import '@/global.css';
 
-import { Platform } from 'react-native';
+import { Platform, type TextStyle } from 'react-native';
+
+// `as const` would freeze this into a readonly tuple, which RN's TextStyle
+// (a mutable FontVariant[]) rejects — every money style would fail to compile.
+const tabularNums = ['tabular-nums'] as TextStyle['fontVariant'];
 
 const dark = {
   bg: '#0A0A0B',
@@ -54,13 +58,13 @@ export const type = {
   heading: { fontSize: 17, lineHeight: 23, letterSpacing: -0.2, fontWeight: '600' },
   body: { fontSize: 16, lineHeight: 25, fontWeight: '400' },
   label: { fontSize: 13, lineHeight: 18, fontWeight: '500' },
-  money: { fontSize: 16, lineHeight: 20, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  money: { fontSize: 16, lineHeight: 20, fontWeight: '700', fontVariant: tabularNums },
   moneyBig: {
     fontSize: 40,
     lineHeight: 40,
     letterSpacing: -1.2,
     fontWeight: '800',
-    fontVariant: ['tabular-nums'],
+    fontVariant: tabularNums,
   },
 } as const;
 

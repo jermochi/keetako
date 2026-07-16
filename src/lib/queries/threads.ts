@@ -1,15 +1,64 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { Tables, TablesInsert } from '@/lib/database.types';
+import type { Enums, Tables, TablesInsert } from '@/lib/database.types';
+import { isOptimistic } from '@/lib/queries/creators';
 import { supabase } from '@/lib/supabase';
 
 export type Thread = Tables<'threads'>;
+export type ThreadStatus = Enums<'thread_status'>;
 export type NewThread = Pick<TablesInsert<'threads'>, 'creator_id' | 'product' | 'sample_cost'>;
+
+export { isOptimistic };
 
 export const threadKeys = {
   all: ['threads'] as const,
   list: () => [...threadKeys.all, 'list'] as const,
+  detail: (id: string) => [...threadKeys.all, 'detail', id] as const,
 };
+
+/** Pipeline order — the enum's own order, requested → gmv_logged. Board sections follow it. */
+export const THREAD_STATUS_ORDER: ThreadStatus[] = [
+  'requested',
+  'approved',
+  'shipped',
+  'delivered',
+  'content_due',
+  'posted',
+  'gmv_logged',
+];
+
+export type ThreadSection = { status: ThreadStatus; data: Thread[] };
+
+/**
+ * SectionList-ready grouping, client-side over the cached list: closed threads are
+ * not active work and drop out; statuses with nothing in them aren't rendered at all.
+ */
+export function groupThreadsByStatus(threads: Thread[] | undefined): ThreadSection[] {
+  if (!threads?.length) return [];
+
+  const byStatus = new Map<ThreadStatus, Thread[]>();
+  for (const thread of threads) {
+    if (thread.closed_at) continue;
+    const bucket = byStatus.get(thread.status);
+    if (bucket) bucket.push(thread);
+    else byStatus.set(thread.status, [thread]);
+  }
+
+  return THREAD_STATUS_ORDER.flatMap((status) => {
+    const data = byStatus.get(status);
+    return data ? [{ status, data }] : [];
+  });
+}
+
+/** The free-plan cap (migration 0003) raised as a PostgREST error on the 11th active thread. */
+export function isFreeCapError(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    typeof (err as { message?: unknown }).message === 'string' &&
+    (err as { message: string }).message.includes('FREE_CAP_REACHED')
+  );
+}
 
 async function fetchThreads(): Promise<Thread[]> {
   const { data, error } = await supabase
@@ -22,6 +71,27 @@ async function fetchThreads(): Promise<Thread[]> {
 
 export function useThreads() {
   return useQuery({ queryKey: threadKeys.list(), queryFn: fetchThreads });
+}
+
+async function fetchThread(id: string): Promise<Thread> {
+  const { data, error } = await supabase.from('threads').select('*').eq('id', id).single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Detail served from the list cache instantly (offline-friendly); network refresh
+ * only for real ids — optimistic ids don't exist server-side yet.
+ */
+export function useThread(id: string | undefined) {
+  const qc = useQueryClient();
+  return useQuery({
+    queryKey: threadKeys.detail(id ?? 'missing'),
+    enabled: !!id && !isOptimistic(id),
+    queryFn: () => fetchThread(id!),
+    initialData: () => qc.getQueryData<Thread[]>(threadKeys.list())?.find((t) => t.id === id),
+    initialDataUpdatedAt: () => qc.getQueryState(threadKeys.list())?.dataUpdatedAt,
+  });
 }
 
 async function insertThread(input: NewThread): Promise<Thread> {
