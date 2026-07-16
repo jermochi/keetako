@@ -14,6 +14,11 @@ export function formatFollowers(n: number): string {
   return String(n);
 }
 
+/** 150 → "₱150" · 1250.5 → "₱1,251" — whole pesos; centavos never matter here. */
+export function formatPeso(amount: number): string {
+  return `₱${Math.round(amount).toLocaleString('en-PH')}`;
+}
+
 /** ISO timestamp → "Jul 14, 2026" */
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-PH', {
