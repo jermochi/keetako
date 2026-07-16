@@ -47,14 +47,15 @@ export const strings = {
       pickerSearchPlaceholder: 'Search handle',
       pickerAdd: (handle: string) => `Add @${handle}`,
       pickerAddOffline: 'You need a connection to add a new creator. Pick an existing one for now.',
+      pickerAddError: 'Couldn’t add that creator. Check your connection and try again.',
       productLabel: 'Product',
       productPlaceholder: 'What you’re sending',
       productRequired: 'Product is required.',
       costLabel: 'Sample cost',
       costPlaceholder: '0',
-      costInvalid: 'Enter a cost of ₱0 or more.',
       freeCap:
         'You’ve hit 10 active threads on the free plan. Close a finished thread to start a new one.',
+      saveError: 'Couldn’t start the thread. Check your connection and try again.',
       save: 'Start thread',
     },
     detail: {
