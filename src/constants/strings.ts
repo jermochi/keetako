@@ -70,7 +70,9 @@ export const strings = {
     title: 'Creators',
     searchPlaceholder: 'Search handle or niche',
     addA11y: 'Add creator',
-    followersUnit: 'followers',
+    // Ghost count ("· 2 need a nudge") joins this line at M9, when creator_stats lands.
+    countLine: (n: number) => `${n} ${n === 1 ? 'creator' : 'creators'}`,
+    filterAll: 'All',
     platforms: {
       tiktok_shop: 'TikTok Shop',
       shopee: 'Shopee',
@@ -93,9 +95,9 @@ export const strings = {
     },
     detail: {
       edit: 'Edit',
-      platform: 'Platform',
+      newThread: 'New thread',
+      // Platform and niche render as header chips, not info rows — no strings needed.
       followers: 'Followers',
-      niche: 'Niche',
       contact: 'Contact',
       added: 'Added',
       notes: 'Notes',
@@ -112,6 +114,8 @@ export const strings = {
     form: {
       newTitle: 'New creator',
       editTitle: 'Edit creator',
+      closeA11y: 'Close',
+      avatarCaption: 'Avatar builds from the handle',
       handleLabel: 'Handle',
       handlePlaceholder: 'their.tiktok.handle',
       handleRequired: 'Handle is required.',
@@ -119,7 +123,7 @@ export const strings = {
         'You already track this handle on this platform — open their profile to edit it instead.',
       platformLabel: 'Platform',
       nicheLabel: 'Niche',
-      nichePlaceholder: 'beauty, food finds, home…',
+      nichePlaceholder: 'beauty, food finds…',
       followersLabel: 'Followers',
       followersPlaceholder: '21400',
       contactLabel: 'Contact',
