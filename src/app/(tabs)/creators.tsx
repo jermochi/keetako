@@ -69,13 +69,19 @@ export default function CreatorsScreen() {
           accessibilityLabel={t.addA11y}
           accessibilityRole="button"
           onPress={() => router.push('/creator/edit')}
-          style={({ pressed }) => [styles.addWrap, pressed && styles.pressed]}>
+          // backgroundColor is invisible under the gradient, but Android derives the
+          // elevation shadow from the view's outline — no background, no shadow.
+          style={({ pressed }) => [
+            styles.addWrap,
+            { backgroundColor: theme.heat.main },
+            pressed && styles.pressed,
+          ]}>
           <LinearGradient
-            colors={[theme.heat.main, theme.heat.bright]}
+            colors={theme.ringGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.add}>
-            <Feather name="plus" size={18} color={theme.heat.on} />
+            <Feather name="plus" size={18} color={theme.onGradient} />
           </LinearGradient>
         </Pressable>
       </View>

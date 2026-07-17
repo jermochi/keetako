@@ -19,6 +19,10 @@ import { Platform, type TextStyle } from 'react-native';
 // (a mutable FontVariant[]) rejects — every money style would fail to compile.
 const tabularNums = ['tabular-nums'] as TextStyle['fontVariant'];
 
+// Two stops, not a palette: `as [string, string]` keeps light assignable to dark's
+// shape and matches what expo-linear-gradient's `colors` wants.
+type Gradient = [string, string];
+
 const dark = {
   bg: '#0A0A0B',
   surface: '#141416',
@@ -30,6 +34,20 @@ const dark = {
   inkMuted: '#706F76',
   // the ONE accent — act here: alerts, at-risk money, primary CTA, destructive
   heat: { main: '#FF3D8C', bright: '#FF66A3', soft: '#351320', on: '#0A0A0B' },
+  /**
+   * The one sanctioned exception to "no second hue" — and it is not an accent.
+   * Purple here MEANS NOTHING: it's decoration on the avatar ring and the FAB,
+   * where the hue sweep is the whole point (a pink→pink ramp reads as flat).
+   * The rule that keeps it honest: a gradient may never encode state. It never
+   * touches text, status, ROI, money, or anything you read a value off.
+   */
+  ringGradient: ['#FF3D8C', '#A24BF0'] as Gradient,
+  /**
+   * Ink for content sitting ON ringGradient. Constant across themes on purpose:
+   * `heat.on` flips with the theme, but the gradient is saturated in both, so a
+   * flipping token would drop near-black onto light's purple.
+   */
+  onGradient: '#FFFFFF',
 };
 
 // Widened on purpose: `dark` defines the *shape*, `light` is a full peer that
@@ -46,6 +64,9 @@ const light: ThemeColors = {
   inkSecondary: '#575560',
   inkMuted: '#86848D',
   heat: { main: '#D01166', bright: '#F0367F', soft: '#FEEDF4', on: '#FFFFFF' },
+  // Darker stops than dark's: on a near-white ground the ring must hold its own.
+  ringGradient: ['#D01166', '#7B2FD6'] as Gradient,
+  onGradient: '#FFFFFF',
 };
 
 // All pairs verified ≥ 4.5:1 for text (3:1 for large/UI) in both themes.

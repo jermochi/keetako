@@ -13,10 +13,10 @@ type Props = {
 /**
  * Ringed circular avatar for the creator screens — the social-app read.
  *
- * The ring is heat→heat.bright, never a second hue: it's the same accent at two
- * luminances, so it reads as depth rather than as a new colour with a meaning
- * of its own. (`InitialsAvatar` is the squared-off tile used where a creator is
- * context inside another record — thread rows. Different job, different shape.)
+ * The ring runs `theme.ringGradient` (pink→purple); see the token for why that
+ * hue sweep is allowed and what it may never do. (`InitialsAvatar` is the
+ * squared-off tile used where a creator is context inside another record —
+ * thread rows. Different job, different shape.)
  */
 export function CreatorAvatar({ handle, size = 52 }: Props) {
   const theme = useTheme();
@@ -29,7 +29,7 @@ export function CreatorAvatar({ handle, size = 52 }: Props) {
 
   return (
     <LinearGradient
-      colors={[theme.heat.main, theme.heat.bright]}
+      colors={theme.ringGradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.ring, { width: size, height: size, borderRadius: size / 2, padding: ring }]}>
