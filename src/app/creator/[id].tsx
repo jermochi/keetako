@@ -1,14 +1,21 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button } from '@/components/button';
-import { InitialsAvatar } from '@/components/initials-avatar';
+import { CreatorAvatar } from '@/components/creator-avatar';
 import { ScreenHeader } from '@/components/screen-header';
 import { strings } from '@/constants/strings';
 import { radius, space, type } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { creatorSubtitle, formatDate, formatFollowers } from '@/lib/format';
+import { formatDate, formatFollowers } from '@/lib/format';
 import { useCreator, useDeleteCreator } from '@/lib/queries/creators';
 
 const t = strings.creators.detail;
@@ -52,53 +59,103 @@ export default function CreatorDetailScreen() {
     ]);
   }
 
-  const subtitle = creatorSubtitle(creator);
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]} edges={['top']}>
-      <ScreenHeader
-        title=""
-        onBack={() => router.back()}
-        right={
-          <Pressable
-            onPress={() => router.push({ pathname: '/creator/edit', params: { id: creator.id } })}
-            hitSlop={12}
-            style={({ pressed }) => (pressed ? styles.pressed : null)}>
-            <Text style={[styles.editLink, { color: theme.ink }]}>{t.edit}</Text>
-          </Pressable>
-        }
-      />
+      <ScreenHeader title="" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
-          <InitialsAvatar handle={creator.handle} size={56} />
+          <CreatorAvatar handle={creator.handle} size={88} />
           <Text style={[styles.handle, { color: theme.ink }]}>@{creator.handle}</Text>
-          {subtitle ? (
-            <Text style={[styles.subtitle, { color: theme.inkSecondary }]}>{subtitle}</Text>
-          ) : null}
+          <View style={styles.tags}>
+            <Tag label={strings.creators.platforms[creator.platform]} />
+            {creator.niche ? <Tag label={creator.niche} /> : null}
+          </View>
         </View>
 
-        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.hair }]}>
-          <DetailRow label={t.platform} value={strings.creators.platforms[creator.platform]} />
+        <View style={styles.actions}>
+          <Action
+            label={t.newThread}
+            tone="heat"
+            onPress={() =>
+              router.push({ pathname: '/thread/new', params: { creatorId: creator.id } })
+            }
+          />
+          <Action
+            label={t.edit}
+            tone="ink"
+            onPress={() => router.push({ pathname: '/creator/edit', params: { id: creator.id } })}
+          />
+        </View>
+
+        <View style={[styles.card, { backgroundColor: theme.surfaceMuted }]}>
+          <DetailRow label={t.contact} value={creator.contact} />
           <DetailRow
             label={t.followers}
             value={creator.followers != null ? formatFollowers(creator.followers) : null}
           />
-          <DetailRow label={t.niche} value={creator.niche} />
-          <DetailRow label={t.contact} value={creator.contact} />
           <DetailRow label={t.added} value={formatDate(creator.created_at)} last />
         </View>
 
-        <View
-          style={[styles.card, styles.notes, { backgroundColor: theme.surface, borderColor: theme.hair }]}>
-          <Text style={[styles.notesLabel, { color: theme.inkSecondary }]}>{t.notes}</Text>
+        <View style={[styles.card, styles.notes, { backgroundColor: theme.surfaceMuted }]}>
+          <Text style={[styles.notesLabel, { color: theme.inkSecondary }]}>
+            {t.notes.toUpperCase()}
+          </Text>
           <Text style={[styles.notesBody, { color: creator.notes ? theme.ink : theme.inkSecondary }]}>
             {creator.notes ?? t.missing}
           </Text>
         </View>
 
-        <Button label={t.deleteCta} onPress={confirmDelete} variant="outline" tone="heat" />
+        <Pressable
+          accessibilityRole="button"
+          onPress={confirmDelete}
+          style={({ pressed }) => [styles.delete, pressed && styles.pressed]}>
+          <Text style={[styles.deleteLabel, { color: theme.heat.main }]}>{t.deleteCta}</Text>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+/** Read-only descriptor (platform, niche) — a label, not a filter. */
+function Tag({ label }: { label: string }) {
+  const theme = useTheme();
+
+  return (
+    <View style={[tagStyles.tag, { backgroundColor: theme.surfaceMuted }]}>
+      <Text style={[tagStyles.label, { color: theme.inkSecondary }]}>{label}</Text>
+    </View>
+  );
+}
+
+function Action({
+  label,
+  tone,
+  onPress,
+}: {
+  label: string;
+  tone: 'heat' | 'ink';
+  onPress: () => void;
+}) {
+  const theme = useTheme();
+  const heat = tone === 'heat';
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        actionStyles.base,
+        { backgroundColor: heat ? theme.heat.main : theme.surfaceMuted },
+        pressed && actionStyles.pressed,
+      ]}>
+      <Text
+        style={[
+          actionStyles.label,
+          { color: heat ? theme.heat.on : theme.ink, fontWeight: heat ? '700' : '600' },
+        ]}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -117,10 +174,7 @@ function DetailRow({
     <View
       style={[
         rowStyles.row,
-        !last && {
-          borderBottomWidth: StyleSheet.hairlineWidth,
-          borderBottomColor: theme.hair,
-        },
+        !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.hair },
       ]}>
       <Text style={[rowStyles.label, { color: theme.inkSecondary }]}>{label}</Text>
       <Text style={[rowStyles.value, { color: value ? theme.ink : theme.inkSecondary }]}>
@@ -132,20 +186,29 @@ function DetailRow({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: space.lg, gap: space.lg },
+  content: { paddingBottom: space.xl },
   pressed: { opacity: 0.6 },
-  editLink: { ...type.heading },
-  hero: { gap: space.sm, alignItems: 'flex-start' },
-  handle: { ...type.title, marginTop: space.xs },
-  subtitle: { ...type.label, fontWeight: '400' },
+  hero: { alignItems: 'center', paddingHorizontal: space.lg },
+  handle: { fontSize: 22, fontWeight: '700', letterSpacing: -0.3, marginTop: space.md },
+  tags: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 6, marginTop: space.sm },
+  actions: {
+    flexDirection: 'row',
+    gap: space.sm + 2,
+    paddingHorizontal: space.lg,
+    paddingTop: space.lg,
+  },
   card: {
-    borderWidth: StyleSheet.hairlineWidth,
+    marginHorizontal: space.lg,
+    marginTop: space.lg,
     borderRadius: radius.card,
+    paddingHorizontal: space.lg,
     overflow: 'hidden',
   },
-  notes: { padding: space.lg, gap: space.sm },
-  notesLabel: { ...type.label },
-  notesBody: { ...type.body },
+  notes: { marginTop: space.md, paddingVertical: space.md + 2, gap: 6 },
+  notesLabel: { fontSize: 12, fontWeight: '600', letterSpacing: 0.5 },
+  notesBody: { fontSize: 14, lineHeight: 20 },
+  delete: { alignItems: 'center', paddingHorizontal: space.lg, paddingTop: space.xl },
+  deleteLabel: { fontSize: 14, fontWeight: '600' },
   center: {
     flex: 1,
     alignItems: 'center',
@@ -157,15 +220,31 @@ const styles = StyleSheet.create({
   stateBody: { fontSize: 14, lineHeight: 21, textAlign: 'center' },
 });
 
+const tagStyles = StyleSheet.create({
+  tag: { borderRadius: 14, paddingVertical: 5, paddingHorizontal: 11 },
+  label: { fontSize: 12, fontWeight: '600' },
+});
+
+const actionStyles = StyleSheet.create({
+  base: {
+    flex: 1,
+    height: 42,
+    borderRadius: radius.button,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pressed: { opacity: 0.8 },
+  label: { fontSize: 14 },
+});
+
 const rowStyles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: space.md,
-    paddingHorizontal: space.lg,
-    paddingVertical: space.md,
+    paddingVertical: 13,
   },
-  label: { ...type.label },
-  value: { fontSize: 15, fontWeight: '500', flexShrink: 1, textAlign: 'right' },
+  label: { fontSize: 14 },
+  value: { fontSize: 14, fontWeight: '600', flexShrink: 1, textAlign: 'right' },
 });

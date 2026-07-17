@@ -70,7 +70,6 @@ export const strings = {
     title: 'Creators',
     searchPlaceholder: 'Search handle or niche',
     addA11y: 'Add creator',
-    followersUnit: 'followers',
     // Ghost count ("· 2 need a nudge") joins this line at M9, when creator_stats lands.
     countLine: (n: number) => `${n} ${n === 1 ? 'creator' : 'creators'}`,
     filterAll: 'All',
@@ -97,9 +96,8 @@ export const strings = {
     detail: {
       edit: 'Edit',
       newThread: 'New thread',
-      platform: 'Platform',
+      // Platform and niche render as header chips, not info rows — no strings needed.
       followers: 'Followers',
-      niche: 'Niche',
       contact: 'Contact',
       added: 'Added',
       notes: 'Notes',

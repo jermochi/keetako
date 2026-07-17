@@ -1,16 +1,26 @@
+import { Feather } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
-import { Chip } from '@/components/chip';
+import { CreatorAvatar } from '@/components/creator-avatar';
 import { Field } from '@/components/field';
-import { ScreenHeader } from '@/components/screen-header';
+import { Segmented } from '@/components/segmented';
 import { strings } from '@/constants/strings';
-import { space, type } from '@/constants/theme';
+import { space } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { formatFollowers } from '@/lib/format';
 import {
   type Creator,
   creatorKeys,
@@ -22,7 +32,12 @@ import {
 } from '@/lib/queries/creators';
 
 const t = strings.creators.form;
-const PLATFORMS: Creator['platform'][] = ['tiktok_shop', 'shopee', 'other'];
+
+const PLATFORM_OPTIONS: { value: Creator['platform']; label: string }[] = [
+  { value: 'tiktok_shop', label: strings.creators.platforms.tiktok_shop },
+  { value: 'shopee', label: strings.creators.platforms.shopee },
+  { value: 'other', label: strings.creators.platforms.other },
+];
 
 export default function CreatorEditScreen() {
   const theme = useTheme();
@@ -93,78 +108,114 @@ export default function CreatorEditScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]} edges={['top']}>
-      <ScreenHeader title={editing ? t.editTitle : t.newTitle} onBack={() => router.back()} />
+      <View style={styles.header}>
+        <Pressable
+          accessibilityLabel={t.closeA11y}
+          accessibilityRole="button"
+          onPress={() => router.back()}
+          hitSlop={12}
+          style={({ pressed }) => (pressed ? styles.pressed : null)}>
+          <Feather name="x" size={24} color={theme.ink} />
+        </Pressable>
+        <Text style={[styles.headerTitle, { color: theme.ink }]}>
+          {editing ? t.editTitle : t.newTitle}
+        </Text>
+        {/* Balances the close icon so the title sits optically centred. */}
+        <View style={styles.headerSpacer} />
+      </View>
+
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Field
-            label={t.handleLabel}
-            prefix="@"
-            value={handle}
-            onChangeText={(text) => {
-              setHandle(text);
-              if (handleError) setHandleError(null);
-            }}
-            error={handleError}
-            placeholder={t.handlePlaceholder}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-
-          <View style={styles.platform}>
-            <Text style={[styles.platformLabel, { color: theme.inkSecondary }]}>
-              {t.platformLabel}
+          <View style={styles.avatar}>
+            <CreatorAvatar handle={normalizeHandle(handle)} size={72} />
+            <Text style={[styles.avatarCaption, { color: theme.inkSecondary }]}>
+              {t.avatarCaption}
             </Text>
-            <View style={styles.chips}>
-              {PLATFORMS.map((p) => (
-                <Chip
-                  key={p}
-                  label={strings.creators.platforms[p]}
-                  selected={platform === p}
-                  onPress={() => {
-                    setPlatform(p);
-                    if (handleError) setHandleError(null);
-                  }}
-                />
-              ))}
-            </View>
           </View>
 
-          <Field
-            label={t.nicheLabel}
-            value={niche}
-            onChangeText={setNiche}
-            placeholder={t.nichePlaceholder}
-          />
-          <Field
-            label={t.followersLabel}
-            value={followers}
-            onChangeText={(text) => setFollowers(text.replace(/[^0-9]/g, ''))}
-            placeholder={t.followersPlaceholder}
-            keyboardType="number-pad"
-          />
-          <Field
-            label={t.contactLabel}
-            value={contact}
-            onChangeText={setContact}
-            placeholder={t.contactPlaceholder}
-            autoCapitalize="none"
-          />
-          <Field
-            label={t.notesLabel}
-            value={notes}
-            onChangeText={setNotes}
-            placeholder={t.notesPlaceholder}
-            multiline
-          />
+          <View style={styles.fields}>
+            <Field
+              label={t.handleLabel}
+              prefix="@"
+              prefixTone="heat"
+              value={handle}
+              onChangeText={(text) => {
+                setHandle(text);
+                if (handleError) setHandleError(null);
+              }}
+              error={handleError}
+              placeholder={t.handlePlaceholder}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
 
+            <View style={styles.platform}>
+              <Text style={[styles.platformLabel, { color: theme.inkSecondary }]}>
+                {t.platformLabel}
+              </Text>
+              <Segmented
+                options={PLATFORM_OPTIONS}
+                value={platform}
+                onChange={(p) => {
+                  setPlatform(p);
+                  if (handleError) setHandleError(null);
+                }}
+              />
+            </View>
+
+            <View style={styles.pair}>
+              <View style={styles.niche}>
+                <Field
+                  label={t.nicheLabel}
+                  value={niche}
+                  onChangeText={setNiche}
+                  placeholder={t.nichePlaceholder}
+                />
+              </View>
+              <View style={styles.followers}>
+                <Field
+                  label={t.followersLabel}
+                  value={followers}
+                  onChangeText={(text) => setFollowers(text.replace(/[^0-9]/g, ''))}
+                  placeholder={t.followersPlaceholder}
+                  keyboardType="number-pad"
+                  accessory={
+                    followers ? (
+                      <Text style={[styles.followersPreview, { color: theme.heat.main }]}>
+                        {formatFollowers(parseInt(followers, 10))}
+                      </Text>
+                    ) : null
+                  }
+                />
+              </View>
+            </View>
+
+            <Field
+              label={t.contactLabel}
+              value={contact}
+              onChangeText={setContact}
+              placeholder={t.contactPlaceholder}
+              autoCapitalize="none"
+            />
+            <Field
+              label={t.notesLabel}
+              value={notes}
+              onChangeText={setNotes}
+              placeholder={t.notesPlaceholder}
+              multiline
+            />
+          </View>
+        </ScrollView>
+
+        <View style={[styles.footer, { backgroundColor: theme.bg, borderTopColor: theme.hair }]}>
           <Button
             label={t.save}
             onPress={onSave}
             disabled={editing && !hydrated} // never save an unhydrated edit (would wipe fields)
           />
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -173,8 +224,31 @@ export default function CreatorEditScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   flex: { flex: 1 },
-  content: { padding: space.lg, gap: space.lg },
-  platform: { gap: space.sm },
-  platformLabel: { ...type.label },
-  chips: { flexDirection: 'row', gap: space.sm },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: space.lg,
+    paddingTop: space.md,
+    paddingBottom: space.xs,
+  },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
+  headerSpacer: { width: 24 },
+  pressed: { opacity: 0.6 },
+  content: { paddingBottom: space.lg },
+  avatar: { alignItems: 'center', paddingTop: space.md + 2, gap: space.sm },
+  avatarCaption: { fontSize: 12 },
+  fields: { gap: space.lg, paddingHorizontal: space.lg, paddingTop: space.md },
+  platform: { gap: space.xs },
+  platformLabel: { fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  pair: { flexDirection: 'row', gap: space.md },
+  niche: { flex: 1.4 },
+  followers: { flex: 1 },
+  followersPreview: { fontSize: 12, fontWeight: '700' },
+  footer: {
+    paddingHorizontal: space.lg,
+    paddingTop: space.md,
+    paddingBottom: space.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
 });
