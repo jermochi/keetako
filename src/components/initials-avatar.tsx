@@ -1,17 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
+import { initialsOf } from '@/lib/format';
 
 type Props = { handle: string; size?: number };
 
 /** Mono initials tile (mockup "mono-av") — quiet ink on muted surface. */
 export function InitialsAvatar({ handle, size = 40 }: Props) {
   const theme = useTheme();
-  const initials =
-    handle
-      .replace(/[^a-z0-9]/gi, '')
-      .slice(0, 2)
-      .toUpperCase() || '?';
+  const initials = initialsOf(handle);
 
   return (
     <View

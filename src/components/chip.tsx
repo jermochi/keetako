@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { radius, space } from '@/constants/theme';
+import { space } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 type Props = { label: string; selected: boolean; onPress: () => void };
@@ -11,6 +11,8 @@ export function Chip({ label, selected, onPress }: Props) {
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
       style={({ pressed }) => [
         styles.base,
         selected
@@ -29,9 +31,11 @@ export function Chip({ label, selected, onPress }: Props) {
 const styles = StyleSheet.create({
   base: {
     borderWidth: 1,
-    borderRadius: radius.input,
+    // Fully rounded: a filter chip is a pill, and the radius token scale tops out
+    // at card geometry. Height is content-driven, so half of it is the constant.
+    borderRadius: 999,
     paddingVertical: space.sm,
-    paddingHorizontal: space.md,
+    paddingHorizontal: space.lg - 2,
   },
   pressed: { opacity: 0.7 },
   label: { fontSize: 13, fontWeight: '600' },
